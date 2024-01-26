@@ -1,5 +1,3 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
-from team_optimazer import *
 import itertools
 
 # --------------- DEFINING SOME VARIABLES -------------------#
