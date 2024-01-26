@@ -1,13 +1,18 @@
+# -*- coding: utf-8 -*-
 import itertools
+import pandas as pd
 
 # --------------- DEFINING SOME VARIABLES -------------------#
 HELP_TEXT = '''
-Este Bot es propiedad de VoludosInk.
+# - Este Bot es propiedad de VoludosInk - #
+
 Está diseñado para simplificar la
 creación de equipos en futbolito.
 
 El modo de uso es la siguiente:
-Se debe ingresar una lista numerada de nombres.
+Se debe ingresar una lista de nombres.
+Esta lista debe contener solo un jugador por línea.
+(No es necesario que los jugadores estén numerados)
 Este es un ejemplo de mensaje a ingresar:
 
 1. jugador1
@@ -18,24 +23,13 @@ Este es un ejemplo de mensaje a ingresar:
 14. jugador14
 
 Este Bot retornará los equipos más equilibrados que encuentre.
+
+Se recomienda primero mandar "/players" y ver qué jugadores
+hay disponibles con sus respectivos nombres (o alias).
 '''
 
-players = [
-    {"nombre": "Vito", "defensa": 5, "medio": 8, "ataque": 7},
-    {"nombre": "Dolo", "defensa": 5, "medio": 5, "ataque": 4},
-    {"nombre": "Valenzuela", "defensa": 8, "medio": 7, "ataque": 5},
-    {"nombre": "Jano", "defensa": 7, "medio": 5, "ataque": 4},
-    {"nombre": "Capullo", "defensa": 7, "medio": 6, "ataque": 6},
-    {"nombre": "Reyes", "defensa": 3, "medio": 4, "ataque": 7},
-    {"nombre": "Migue", "defensa": 6, "medio": 7, "ataque": 7},
-    {"nombre": "Rodro", "defensa": 5, "medio": 6, "ataque": 9},
-    {"nombre": "Nacho", "defensa": 5, "medio": 7, "ataque": 9},
-    {"nombre": "Gallo", "defensa": 9, "medio": 8, "ataque": 7},
-    {"nombre": "Koke", "defensa": 5, "medio": 6, "ataque": 6},
-    {"nombre": "Juanka", "defensa": 6, "medio": 7, "ataque": 7},
-    {"nombre": "Arquero", "defensa": 8, "medio": 6, "ataque": 3},
-    {"nombre": "Adolfo", "defensa": 9, "medio": 5, "ataque": 2}
-]
+df = pd.read_excel("Fushibola.xlsx")
+players = df.to_dict(orient="records")
 
 # -------------------- DEFINING SOME FUNCTIONS ----------------------- #
 
@@ -57,7 +51,7 @@ def helper(update, context):
 def dict2text(player_dict):
     message = ""
     for id, player in enumerate(player_dict):
-        message += f"{id+1}. {player['nombre']} \n"
+        message += f"{id+1}. {player['Alias']} \n"
 
     return message
 
@@ -84,7 +78,7 @@ def analyzer(update, context):
 
 def filter_players(selected_names_str, players_list):
     list_names = selected_names_str.lower()
-    selected_players = [player for player in players_list if player["nombre"].lower() in list_names]
+    selected_players = [player for player in players_list if player["Alias"].lower() in list_names]
 
     return selected_players
 
@@ -100,8 +94,8 @@ def calculate_optimal_team(players):
         team2 = [player for player in players if player not in team1]
 
         # Calculate the total skills of each team
-        skills_team1 = sum(jugador["defensa"] + jugador["medio"] + jugador["ataque"] for jugador in team1)
-        skills_team2 = sum(jugador["defensa"] + jugador["medio"] + jugador["ataque"] for jugador in team2)
+        skills_team1 = sum(player["Defensa"] + player["Medio Campo"] + player["Ataque"] + player["Stamina"] + player["Pase"] for player in team1)
+        skills_team2 = sum(player["Defensa"] + player["Medio Campo"] + player["Ataque"] + player["Stamina"] + player["Pase"] for player in team2)
 
         # Calculate the difference between the skills of the two teams
         difference = abs(skills_team1 - skills_team2)
@@ -116,7 +110,7 @@ def calculate_optimal_team(players):
 def show_players(update, context):
     message = "Listado de jugadores en la base de datos:\n\n"
     for i, p in enumerate(players):
-        message += f"{i+1}. {p['nombre']}\n"
+        message += f"{i+1}. {p['Alias']}: \t {p['Posición en el campo']}\n"
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
